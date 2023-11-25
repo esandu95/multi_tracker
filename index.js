@@ -17,23 +17,28 @@ db.connect();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-let currentUserId = 1;
-
-let users = [
-  { id: 1, name: "Angela", color: "teal" },
-  { id: 2, name: "Jack", color: "powderblue" },
-];
-
 async function checkVisisted() {
-  const result = await db.query("SELECT country_code FROM visited_countries");
+  const result = await db.query("SELECT country_code FROM multi_tracker");
   let countries = [];
   result.rows.forEach((country) => {
     countries.push(country.country_code);
   });
   return countries;
 }
+
+async function checkUsers(){
+  const lotResult = await db.query("SELECT * FROM users");
+  const result = lotResult.rows;
+  let users =[];
+  for (let index = 0; index < result.length; index++) {
+  users.push(result[index])
+  }
+  return users;
+}
+
 app.get("/", async (req, res) => {
   const countries = await checkVisisted();
+  const users = await checkUsers();
   res.render("index.ejs", {
     countries: countries,
     total: countries.length,
