@@ -12,7 +12,8 @@ body {
 }
 body {
   background: #21252b;
-  font-family: "Roboto", sans-serif;
+  font-family: 'Cinzel', serif;
+  color: white;
 }
 
 .ag-canvas {
@@ -66,7 +67,7 @@ body {
 }
 
 input {
-  font-family: "Roboto", sans-serif;
+  font-family: 'Cinzel', serif;
   outline: 0;
   background: #f2f2f2;
   width: 100%;
@@ -79,7 +80,7 @@ input {
 }
 
 button {
-  font-family: "Roboto", sans-serif;
+  font-family: 'Cinzel', serif;
   text-transform: uppercase;
   outline: 0;
   background: teal;
@@ -95,7 +96,7 @@ button {
 }
 
 .total-count {
-  font-family: "Roboto", sans-serif;
+  font-family: 'Cinzel', serif;
   color: white;
   position: absolute;
   padding: 15px;
@@ -421,7 +422,7 @@ button {
 
 .tab-view > label {
   padding: 0 20px;
-  background: #e5e5e5;
+  background: gray;
   font-size: 13px;
   line-height: 49px;
 }

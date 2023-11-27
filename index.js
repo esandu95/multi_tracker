@@ -17,16 +17,7 @@ db.connect();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-var lastUserId = 0;
-
-async function checkVisisted() {
-  const result = await db.query("SELECT country_code FROM multi_tracker");
-  let countries = [];
-  result.rows.forEach((country) => {
-    countries.push(country.country_code);
-  });
-  return countries;
-}
+var lastUserId = 1;
 
 async function checkUsers(){
   const lotResult = await db.query("SELECT * FROM users");
@@ -38,37 +29,53 @@ async function checkUsers(){
   return users;
 }
 
+async function checkCountries(){
+  const result = await db.query("SELECT country_code FROM multi_tracker WHERE user_id = $1",[lastUserId]);
+  let countries = [];
+  result.rows.forEach((country) => {
+    countries.push(country.country_code);
+  });
+  return countries;
+}
+
+async function checkUser(){
+  const lotResult = await db.query("SELECT * FROM users WHERE id =$1",[lastUserId]);
+  const result = lotResult.rows;
+  return result;
+}
 app.get("/", async (req, res) => {
-  const countries = await checkVisisted();
   const users = await checkUsers();
+  const countries = await checkCountries();
+  const user= await checkUser();
   res.render("index.ejs", {
     countries: countries,
     total: countries.length,
     users: users,
-    color: "teal",
+    color: user[0].color,
+    userName:user[0].user_name,
   });
   
 });
 app.get("/user",async(req,res)=>{
   var userId=req.query.user;
   lastUserId = userId;
-  const users = await checkUsers();
-  const result = await db.query("SELECT country_code FROM multi_tracker WHERE user_id = $1",[userId]);
-  let countries = [];
-  result.rows.forEach((country) => {
-    countries.push(country.country_code);
-  });
+  const users = await checkUsers ();
+  const countries = await checkCountries();
+  const user= await checkUser();
   res.render("index.ejs", {
     countries: countries,
     total: countries.length,
     users: users,
-    color: users[userId-1].color,
+    color: user[0].color,
+    userName:user[0].user_name,
+    error: "Write the name of the country you want to add.",
   });
 });
 
 app.get("/addUser", (req,res)=>{
   res.render("new.ejs")
 });
+
 app.post("/add", async (req, res) => {
   const input = req.body["country"];
   try {
@@ -84,12 +91,32 @@ app.post("/add", async (req, res) => {
       [countryCode,lastUserId]
       );
 
-      res.redirect("/")
+      res.redirect(`/user?user=${lastUserId}`)
     } catch (err) {
-      console.log(err);
+      const users = await checkUsers();
+      const countries = await checkCountries();
+      const user= await checkUser();
+      res.render("index.ejs", {
+        countries: countries,
+        total: countries.length,
+        users: users,
+        color: user[0].color,
+        userName:user[0].user_name,
+        error: "Country has already been added, try again.",
+      });
     }
   } catch (err) {
-    console.log(err);
+      const users = await checkUsers();
+      const countries = await checkCountries();
+      const user= await checkUser();
+      res.render("index.ejs", {
+        countries: countries,
+        total: countries.length,
+        users: users,
+        color: user[0].color,
+        userName:user[0].user_name,
+      error: "Country name does not exist, try again.",
+    });
   }
 });
 
@@ -103,6 +130,9 @@ app.post("/new", async (req, res) => {
   res.redirect("/");
   //Hint: The RETURNING keyword can return the data that was inserted.
   //https://www.postgresql.org/docs/current/dml-returning.html
+});
+app.post("/back", (req,res)=>{
+  res.redirect("/");
 });
 
 app.listen(port, () => {
