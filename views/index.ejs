@@ -385,13 +385,17 @@
   </section>
   <h2 class="total-count">Total Countries: <%=total%>
   </h2>
-  <script>
-    const country_codes = "<%= countries %>".split(",")
-    console.log(typeof ("<%= countries %>"))
-    country_codes.forEach(code => {
-      document.getElementById(code).style.fill = "<%= color %>"
-    });
-  </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+     const country_codes = "<%= countries %>".split(",");
+     country_codes.forEach(code => {
+       const countryPath = document.getElementById(code);
+       if (countryPath) {
+         countryPath.style.fill = '<%= color %>';
+       }
+     });
+   });
+     </script>
 </body>
 
 </html>

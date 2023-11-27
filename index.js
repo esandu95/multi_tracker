@@ -17,6 +17,8 @@ db.connect();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
+var lastUserId = 0;
+
 async function checkVisisted() {
   const result = await db.query("SELECT country_code FROM multi_tracker");
   let countries = [];
@@ -45,6 +47,23 @@ app.get("/", async (req, res) => {
     users: users,
     color: "teal",
   });
+  
+});
+app.get("/user",async(req,res)=>{
+  var userId=req.query.user;
+  lastUserId = userId;
+  const users = await checkUsers();
+  const result = await db.query("SELECT country_code FROM multi_tracker WHERE user_id = $1",[userId]);
+  let countries = [];
+  result.rows.forEach((country) => {
+    countries.push(country.country_code);
+  });
+  res.render("index.ejs", {
+    countries: countries,
+    total: countries.length,
+    users: users,
+    color: users[userId-1].color,
+  });
 });
 
 app.get("/addUser", (req,res)=>{
@@ -52,21 +71,20 @@ app.get("/addUser", (req,res)=>{
 });
 app.post("/add", async (req, res) => {
   const input = req.body["country"];
-
   try {
     const result = await db.query(
       "SELECT country_code FROM countries WHERE LOWER(country_name) LIKE '%' || $1 || '%';",
       [input.toLowerCase()]
     );
-
     const data = result.rows[0];
     const countryCode = data.country_code;
     try {
       await db.query(
-        "INSERT INTO visited_countries (country_code) VALUES ($1)",
-        [countryCode]
+        "INSERT INTO multi_tracker (country_code, user_id) VALUES ($1,$2)",
+      [countryCode,lastUserId]
       );
-      res.redirect("/");
+
+      res.redirect("/")
     } catch (err) {
       console.log(err);
     }
@@ -74,7 +92,6 @@ app.post("/add", async (req, res) => {
     console.log(err);
   }
 });
-app.post("/user", async (req, res) => {});
 
 app.post("/new", async (req, res) => {
   const name = req.body.name;
